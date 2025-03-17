@@ -1,35 +1,39 @@
 import simpy
+from order import Order
+import random
 
 restaurant_env = simpy.Environment()
 order_store = simpy.Store(restaurant_env,10)
 order_inter = 7
+order_type = ["fries", "burger","soda"]
+cook_time = {"fries":5,"burger":6, "soda":3 }
+order_quantity_min, order_quantity_max = 1,5
 
 
 def add_order(env: simpy.Environment, order_store: simpy.Store):
-    order_i = 0
     while True:
-        order_i +=1
         yield env.timeout(order_inter)
-        print(f"adding Order: {order_i} at {env.now}")
-        order_store.put(f"Order: {order_i}")
+        order_quantity = random.randint(order_quantity_min,order_quantity_max)
+        order = Order(random.choice(order_type),order_quantity)
+        #print(f"adding Order[{order.id}]: {order.name} with quantity {order_quantity} at {env.now}")
+        order_store.put(order)
 
     
 
 def cook(env: simpy.Environment,order_store: simpy.Store):
     while True:
         
-        print('requesting Order at', env.now)
+        print('waiting for Order at', env.now)
 
-        item = yield order_store.get()
+        order: Order = yield order_store.get()
 
-        
-        print(f'Cooking {item} at {env.now}')
-
-        cook_duration = 5
-
-        yield env.timeout(cook_duration)
+        for i in range(order.quantity):
+            i += 1
+            print(f'Cooking Order {order.name} {i} of {order.quantity}, ID {order.id} at {env.now}')
+            yield env.timeout(cook_time[order.name])
+        print(f"finnished Cooking at {env.now}")
 
 restaurant_env.process(add_order(restaurant_env,order_store))
 restaurant_env.process(cook(restaurant_env,order_store))
 
-restaurant_env.run(until=15)
+restaurant_env.run(until=1000)
