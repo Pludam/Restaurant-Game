@@ -26,7 +26,7 @@ def add_customer(env: simpy.Environment, order_store: simpy.Store):
         print("Customer Arriving")
         order_quantity = random.randint(order_quantity_min,order_quantity_max)
         order = Order(env, random.choice(order_type),order_quantity)
-        customer = Customer(order)
+        #customer = Customer(order)
         order_store.put(order)
         yield order.completed_event
         print("Customer Leaving")
